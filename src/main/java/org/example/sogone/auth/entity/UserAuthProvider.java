@@ -2,6 +2,7 @@ package org.example.sogone.auth.entity;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Locale;
 
 import org.example.sogone.auth.entity.type.Provider;
 import org.example.sogone.global.common.BaseCreatedTimeEntity;
@@ -97,12 +98,16 @@ public class UserAuthProvider extends BaseCreatedTimeEntity {
 
 	// 로컬 회원 가입
 	public static UserAuthProvider ofLocal(User user, String email, String passwordHash, Instant now) {
-		String normalized = email.trim().toLowerCase();
+		String normalized = normalizeEmail(email);
 		return new UserAuthProvider(user, Provider.LOCAL, normalized, normalized, passwordHash, now);
 	}
 
 	// 소셜로그인
 	public static UserAuthProvider ofSocial(User user, Provider provider, String providerUserId, String email) {
 		return new UserAuthProvider(user, provider, providerUserId, email, null, null);
+	}
+
+	public static String normalizeEmail(String email) {
+		return email.trim().toLowerCase(Locale.ROOT);
 	}
 }

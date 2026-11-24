@@ -70,9 +70,8 @@ public class User extends BaseTimeEntity {
 	private Instant deletedAt;
 
 	@Builder
-	private User(String nickname, String profileImageUrl) {
+	private User(String nickname) {
 		this.nickname = nickname;
-		this.profileImageUrl = profileImageUrl;
 		this.role = Role.USER;
 		this.status = UserStatus.ACTIVE;
 		this.pushEnabled = true;
