@@ -35,7 +35,7 @@ public class UserSession extends BaseCreatedTimeEntity {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
-	@Column(nullable = false, unique = true, length = 64)
+	@Column(nullable = false, unique = true)
 	private String refreshTokenHash;
 
 	@Enumerated(EnumType.STRING)

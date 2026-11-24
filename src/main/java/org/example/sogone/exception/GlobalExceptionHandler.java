@@ -1,5 +1,7 @@
 package org.example.sogone.exception;
 
+import java.util.Arrays;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -10,12 +12,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.exc.InvalidFormatException;
 
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-	@ExceptionHandler(CustomException.class)
-	public ResponseEntity<ErrorResponse> handleException(CustomException e) {
+	@ExceptionHandler(BusinessException.class)
+	public ResponseEntity<ErrorResponse> handleException(BusinessException e) {
 		ErrorCode code = e.getErrorCode();
 		return ResponseEntity.status(code.getStatus()).body(ErrorResponse.of(code));
 	}
@@ -31,6 +34,12 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	public ResponseEntity<ErrorResponse> handleNotReadable(HttpMessageNotReadableException e) {
+		if (e.getCause() instanceof InvalidFormatException ife && ife.getTargetType().isEnum()) {
+			String field = ife.getPath().isEmpty() ? "요청 값" : ife.getPath().getLast().getPropertyName();
+			String allowed = Arrays.toString(ife.getTargetType().getEnumConstants());
+			return ResponseEntity.badRequest().body(
+				ErrorResponse.of(ErrorCode.INVALID_INPUT, field + ": 허용되지 않는 값입니다. 가능한 값: " + allowed));
+		}
 		return ResponseEntity.badRequest().body(ErrorResponse.of(ErrorCode.INVALID_INPUT, "요청 본문을 읽을 수 없습니다."));
 	}
 

@@ -7,4 +7,8 @@ public enum Role {
 	public String getAuthority() {
 		return "ROLE_" + name();
 	}
+
+	public static String getRole(String roleName) {
+		return "ROLE_" + roleName;
+	}
 }
