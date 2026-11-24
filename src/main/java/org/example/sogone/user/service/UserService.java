@@ -1,6 +1,6 @@
 package org.example.sogone.user.service;
 
-import org.example.sogone.exception.CustomException;
+import org.example.sogone.exception.BusinessException;
 import org.example.sogone.exception.ErrorCode;
 import org.example.sogone.user.entity.User;
 import org.example.sogone.user.repository.UserRepository;
@@ -15,7 +15,7 @@ public class UserService {
 
 	public User save(String nickname) {
 		if (userRepository.existsByNickname(nickname)) {
-			throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+			throw new BusinessException(ErrorCode.DUPLICATE_NICKNAME);
 		}
 
 		User newUser = User.builder().nickname(nickname).build();

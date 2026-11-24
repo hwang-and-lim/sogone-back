@@ -7,14 +7,14 @@ import org.example.sogone.user.entity.User;
 
 public record SignupResponseDTO(Long userId, String nickname, Instant createdAt, String email, String accessToken,
                                 String refreshToken) {
-	public static SignupResponseDTO of(User user, UserAuthProvider provider) {
+	public static SignupResponseDTO of(User user, UserAuthProvider provider, String accessToken, String refreshToken) {
 		return new SignupResponseDTO(
 			user.getId(),
 			user.getNickname(),
 			user.getCreatedAt(),
 			provider.getEmail(),
-			"exam-access-token",
-			"exam-refresh-token"
+			accessToken,
+			refreshToken
 		);
 	}
 }

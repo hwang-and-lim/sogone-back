@@ -1,6 +1,9 @@
 package org.example.sogone.auth.dto;
 
+import org.example.sogone.auth.entity.type.Platform;
+
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,4 +21,7 @@ public class SignupRequestDTO {
 	@NotBlank(message = "닉네임을 입력하세요.")
 	@Size(min = 2, max = 30)
 	private String nickname;
+
+	@NotNull(message = "플랫폼을 입력하세요.")
+	private Platform platform;
 }
