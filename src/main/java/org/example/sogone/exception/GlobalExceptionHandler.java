@@ -50,12 +50,13 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<ErrorResponse>> handleUnexpected(Exception e) {
+		log.error("Exception", e);
+		
 		if (e instanceof org.springframework.web.ErrorResponse springError) {
 			HttpStatusCode status = springError.getStatusCode();
-			return error(ErrorCode.toErrorCode(status), e.getMessage());
+			return error(ErrorCode.toErrorCode(status));
 		}
 
-		log.error("Exception", e);
 		ErrorCode code = ErrorCode.INTERNAL_SERVER_ERROR;
 		return error(code);
 	}

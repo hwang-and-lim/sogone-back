@@ -2,12 +2,9 @@ package org.example.sogone.auth.service;
 
 import java.time.Instant;
 
-import org.example.sogone.auth.dto.AuthResponseDTO;
 import org.example.sogone.auth.dto.LoginRequestDTO;
-import org.example.sogone.auth.dto.ReissueRequestDTO;
 import org.example.sogone.auth.dto.SignupRequestDTO;
 import org.example.sogone.auth.dto.TokenPair;
-import org.example.sogone.auth.dto.TokenResponse;
 import org.example.sogone.auth.entity.UserAuthProvider;
 import org.example.sogone.auth.entity.UserSession;
 import org.example.sogone.auth.entity.type.Platform;
@@ -40,7 +37,7 @@ public class AuthService {
 	private final JwtProperties jwtProperties;
 
 	@Transactional
-	public AuthResponseDTO signup(SignupRequestDTO request) {
+	public TokenPair signup(SignupRequestDTO request) {
 		String email = UserAuthProvider.normalizeEmail(request.getEmail());
 		if (authProviderRepository.existsByProviderAndProviderUserId(Provider.LOCAL, email)) {
 			throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
@@ -56,13 +53,11 @@ public class AuthService {
 		);
 		authProviderRepository.save(newAuthProvider);
 
-		TokenPair tokens = createSession(newUser, request.getPlatform());
-
-		return AuthResponseDTO.of(newUser, tokens.accessToken(), tokens.refreshToken());
+		return createSession(newUser, request.getPlatform());
 	}
 
 	@Transactional
-	public AuthResponseDTO login(LoginRequestDTO request) {
+	public TokenPair login(LoginRequestDTO request) {
 		String email = UserAuthProvider.normalizeEmail(request.getEmail());
 		UserAuthProvider userAuthProvider = authProviderRepository.findByProviderAndProviderUserId(
 				Provider.LOCAL,
@@ -75,14 +70,16 @@ public class AuthService {
 			throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
 		}
 
-		TokenPair tokens = createSession(userAuthProvider.getUser(), request.getPlatform());
-
-		return AuthResponseDTO.of(userAuthProvider.getUser(), tokens.accessToken(), tokens.refreshToken());
+		return createSession(userAuthProvider.getUser(), request.getPlatform());
 	}
 
 	@Transactional
-	public TokenResponse reissue(ReissueRequestDTO request) {
-		String hash = refreshTokenGenerator.hashToken(request.refreshToken());
+	public TokenPair reissue(String refreshToken) {
+		if (refreshToken == null || refreshToken.isBlank()) {
+			throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+		}
+
+		String hash = refreshTokenGenerator.hashToken(refreshToken);
 		UserSession session = userSessionRepository.findByRefreshTokenHash(hash).orElseThrow(
 			() -> new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN)
 		);
@@ -93,14 +90,15 @@ public class AuthService {
 		}
 
 		String newRefreshToken = refreshTokenGenerator.generate();
+		Instant refreshExpiresAt = now.plus(jwtProperties.getRefreshExpiration());
 
 		session.rotate(
 			refreshTokenGenerator.hashToken(newRefreshToken),
-			now.plus(jwtProperties.getRefreshExpiration()));
+			refreshExpiresAt);
 
 		String accessToken = jwtTokenProvider.generateAccessToken(session.getUser());
 
-		return new TokenResponse(accessToken, newRefreshToken);
+		return new TokenPair(accessToken, newRefreshToken, refreshExpiresAt, session.getPlatform());
 	}
 
 	private TokenPair createSession(User user, Platform platform) {
@@ -115,6 +113,6 @@ public class AuthService {
 			.expiresAt(expiresAt)
 			.build());
 
-		return new TokenPair(accessToken, refreshToken, expiresAt);
+		return new TokenPair(accessToken, refreshToken, expiresAt, platform);
 	}
 }
