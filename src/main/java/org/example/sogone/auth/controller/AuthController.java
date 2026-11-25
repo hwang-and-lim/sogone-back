@@ -3,7 +3,7 @@ package org.example.sogone.auth.controller;
 import org.example.sogone.auth.dto.AppAuthResponse;
 import org.example.sogone.auth.dto.AuthResponse;
 import org.example.sogone.auth.dto.LoginRequestDTO;
-import org.example.sogone.auth.dto.ReissueRequestDTO;
+import org.example.sogone.auth.dto.RefreshTokenRequestDTO;
 import org.example.sogone.auth.dto.SignupRequestDTO;
 import org.example.sogone.auth.dto.TokenPair;
 import org.example.sogone.auth.dto.WebAuthResponse;
@@ -47,15 +47,34 @@ public class AuthController {
 	@PostMapping("/reissue")
 	public ResponseEntity<ApiResponse<AuthResponse>> reissue(
 		@CookieValue(name = "${jwt.cookie.name}", required = false) String cookieRefreshToken,
-		@RequestBody(required = false) ReissueRequestDTO request
+		@RequestBody(required = false) RefreshTokenRequestDTO request
 	) {
 		String refreshToken =
 			(cookieRefreshToken != null) ? cookieRefreshToken :
-				(request.refreshToken() != null) ? request.refreshToken() : null;
+				(request != null) ? request.refreshToken() : null;
 
 		TokenPair tokens = authService.reissue(refreshToken);
 
 		return tokenResponse(HttpStatus.OK, tokens);
+	}
+
+	@PostMapping("/logout")
+	public ResponseEntity<ApiResponse<Void>> logout(
+		@CookieValue(name = "${jwt.cookie.name}", required = false) String cookieRefreshToken,
+		@RequestBody(required = false) RefreshTokenRequestDTO request
+	) {
+		String refreshToken =
+			(cookieRefreshToken != null) ? cookieRefreshToken :
+				(request != null) ? request.refreshToken() : null;
+
+		authService.logout(refreshToken);
+
+		ResponseEntity.BodyBuilder builder = ResponseEntity.ok();
+		if (cookieRefreshToken != null) {
+			builder.header(HttpHeaders.SET_COOKIE, cookieManager.delete().toString());
+		}
+
+		return builder.body(ApiResponse.ok(null));
 	}
 
 	private ResponseEntity<ApiResponse<AuthResponse>> tokenResponse(HttpStatus status, TokenPair tokens) {

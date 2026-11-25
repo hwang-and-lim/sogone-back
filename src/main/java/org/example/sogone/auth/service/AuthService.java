@@ -101,6 +101,15 @@ public class AuthService {
 		return new TokenPair(accessToken, newRefreshToken, refreshExpiresAt, session.getPlatform());
 	}
 
+	@Transactional
+	public void logout(String refreshToken) {
+		if (refreshToken == null || refreshToken.isBlank())
+			return;
+
+		String hash = refreshTokenGenerator.hashToken(refreshToken);
+		userSessionRepository.findByRefreshTokenHash(hash).ifPresent(userSessionRepository::delete);
+	}
+
 	private TokenPair createSession(User user, Platform platform) {
 		String accessToken = jwtTokenProvider.generateAccessToken(user);
 		String refreshToken = refreshTokenGenerator.generate();
