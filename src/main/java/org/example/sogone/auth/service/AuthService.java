@@ -4,16 +4,21 @@ import java.time.Instant;
 
 import org.example.sogone.auth.dto.AuthResponseDTO;
 import org.example.sogone.auth.dto.LoginRequestDTO;
+import org.example.sogone.auth.dto.ReissueRequestDTO;
 import org.example.sogone.auth.dto.SignupRequestDTO;
 import org.example.sogone.auth.dto.TokenPair;
+import org.example.sogone.auth.dto.TokenResponse;
 import org.example.sogone.auth.entity.UserAuthProvider;
 import org.example.sogone.auth.entity.UserSession;
+import org.example.sogone.auth.entity.type.Platform;
 import org.example.sogone.auth.entity.type.Provider;
 import org.example.sogone.auth.repository.UserAuthProviderRepository;
 import org.example.sogone.auth.repository.UserSessionRepository;
 import org.example.sogone.exception.BusinessException;
 import org.example.sogone.exception.ErrorCode;
+import org.example.sogone.security.jwt.JwtProperties;
 import org.example.sogone.security.jwt.JwtTokenProvider;
+import org.example.sogone.security.jwt.RefreshTokenGenerator;
 import org.example.sogone.user.entity.User;
 import org.example.sogone.user.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,6 +36,8 @@ public class AuthService {
 	private final UserSessionRepository userSessionRepository;
 	private final JwtTokenProvider jwtTokenProvider;
 	private final PasswordEncoder passwordEncoder;
+	private final RefreshTokenGenerator refreshTokenGenerator;
+	private final JwtProperties jwtProperties;
 
 	@Transactional
 	public AuthResponseDTO signup(SignupRequestDTO request) {
@@ -47,34 +54,67 @@ public class AuthService {
 			passwordEncoder.encode(request.getPassword()),
 			Instant.now()
 		);
-
 		authProviderRepository.save(newAuthProvider);
 
-		TokenPair tokens = jwtTokenProvider.issueToken(newUser);
-
-		UserSession newUserSession = UserSession.builder()
-			.user(newUser)
-			.platform(request.getPlatform())
-			.refreshTokenHash(tokens.refreshToken())
-			.expiresAt(tokens.refreshExpiredAt())
-			.build();
-
-		userSessionRepository.save(newUserSession);
+		TokenPair tokens = createSession(newUser, request.getPlatform());
 
 		return AuthResponseDTO.of(newUser, tokens.accessToken(), tokens.refreshToken());
 	}
 
+	@Transactional
 	public AuthResponseDTO login(LoginRequestDTO request) {
-		UserAuthProvider userAuthProvider = authProviderRepository.findByEmail(request.getEmail()).orElseThrow(
-			() -> new BusinessException(ErrorCode.INVALID_CREDENTIALS)
-		);
+		String email = UserAuthProvider.normalizeEmail(request.getEmail());
+		UserAuthProvider userAuthProvider = authProviderRepository.findByProviderAndProviderUserId(
+				Provider.LOCAL,
+				email)
+			.orElseThrow(
+				() -> new BusinessException(ErrorCode.INVALID_CREDENTIALS)
+			);
 
 		if (!passwordEncoder.matches(request.getPassword(), userAuthProvider.getPasswordHash())) {
 			throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
 		}
 
-		TokenPair tokens = jwtTokenProvider.issueToken(userAuthProvider.getUser());
+		TokenPair tokens = createSession(userAuthProvider.getUser(), request.getPlatform());
 
 		return AuthResponseDTO.of(userAuthProvider.getUser(), tokens.accessToken(), tokens.refreshToken());
+	}
+
+	@Transactional
+	public TokenResponse reissue(ReissueRequestDTO request) {
+		String hash = refreshTokenGenerator.hashToken(request.refreshToken());
+		UserSession session = userSessionRepository.findByRefreshTokenHash(hash).orElseThrow(
+			() -> new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN)
+		);
+
+		Instant now = Instant.now();
+		if (session.isExpired(now)) {
+			throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+		}
+
+		String newRefreshToken = refreshTokenGenerator.generate();
+
+		session.rotate(
+			refreshTokenGenerator.hashToken(newRefreshToken),
+			now.plus(jwtProperties.getRefreshExpiration()));
+
+		String accessToken = jwtTokenProvider.generateAccessToken(session.getUser());
+
+		return new TokenResponse(accessToken, newRefreshToken);
+	}
+
+	private TokenPair createSession(User user, Platform platform) {
+		String accessToken = jwtTokenProvider.generateAccessToken(user);
+		String refreshToken = refreshTokenGenerator.generate();
+		Instant expiresAt = Instant.now().plus(jwtProperties.getRefreshExpiration());
+
+		userSessionRepository.save(UserSession.builder()
+			.user(user)
+			.platform(platform)
+			.refreshTokenHash(refreshTokenGenerator.hashToken(refreshToken))
+			.expiresAt(expiresAt)
+			.build());
+
+		return new TokenPair(accessToken, refreshToken, expiresAt);
 	}
 }

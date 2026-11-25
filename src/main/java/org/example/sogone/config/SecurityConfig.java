@@ -39,6 +39,7 @@ public class SecurityConfig {
 				.authenticationEntryPoint(jwtAuthenticationEntryPoint)
 				.accessDeniedHandler(jwtAccessDeniedHandler))
 			.authorizeHttpRequests(auth -> auth
+				.requestMatchers("/error").permitAll()
 				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 				.requestMatchers("/api/auth/**").permitAll()
 				.requestMatchers("/api/admin/**").hasRole("ADMIN")

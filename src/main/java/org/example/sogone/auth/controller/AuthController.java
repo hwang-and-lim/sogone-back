@@ -2,7 +2,9 @@ package org.example.sogone.auth.controller;
 
 import org.example.sogone.auth.dto.AuthResponseDTO;
 import org.example.sogone.auth.dto.LoginRequestDTO;
+import org.example.sogone.auth.dto.ReissueRequestDTO;
 import org.example.sogone.auth.dto.SignupRequestDTO;
+import org.example.sogone.auth.dto.TokenResponse;
 import org.example.sogone.auth.service.AuthService;
 import org.example.sogone.global.common.ApiResponse;
 import org.springframework.http.HttpStatus;
@@ -31,6 +33,13 @@ public class AuthController {
 	@PostMapping("/login")
 	public ResponseEntity<ApiResponse<AuthResponseDTO>> login(@RequestBody @Valid LoginRequestDTO request) {
 		AuthResponseDTO response = authService.login(request);
+
+		return ResponseEntity.ok().body(ApiResponse.ok(response));
+	}
+
+	@PostMapping("/reissue")
+	public ResponseEntity<ApiResponse<TokenResponse>> reissue(@RequestBody @Valid ReissueRequestDTO request) {
+		TokenResponse response = authService.reissue(request);
 
 		return ResponseEntity.ok().body(ApiResponse.ok(response));
 	}
