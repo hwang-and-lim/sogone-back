@@ -1,8 +1,10 @@
 package org.example.sogone.auth.controller;
 
+import org.example.sogone.auth.dto.AuthResponseDTO;
+import org.example.sogone.auth.dto.LoginRequestDTO;
 import org.example.sogone.auth.dto.SignupRequestDTO;
-import org.example.sogone.auth.dto.SignupResponseDTO;
 import org.example.sogone.auth.service.AuthService;
+import org.example.sogone.global.common.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,9 +22,16 @@ public class AuthController {
 	private final AuthService authService;
 
 	@PostMapping("/signup")
-	public ResponseEntity<SignupResponseDTO> signup(@RequestBody @Valid SignupRequestDTO request) {
-		SignupResponseDTO responseDTO = authService.signup(request);
+	public ResponseEntity<ApiResponse<AuthResponseDTO>> signup(@RequestBody @Valid SignupRequestDTO request) {
+		AuthResponseDTO response = authService.signup(request);
 
-		return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
+		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(response));
+	}
+
+	@PostMapping("/login")
+	public ResponseEntity<ApiResponse<AuthResponseDTO>> login(@RequestBody @Valid LoginRequestDTO request) {
+		AuthResponseDTO response = authService.login(request);
+
+		return ResponseEntity.ok().body(ApiResponse.ok(response));
 	}
 }

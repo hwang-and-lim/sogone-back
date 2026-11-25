@@ -1,9 +1,13 @@
 package org.example.sogone.auth.repository;
 
+import java.util.Optional;
+
 import org.example.sogone.auth.entity.UserAuthProvider;
 import org.example.sogone.auth.entity.type.Provider;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserAuthProviderRepository extends JpaRepository<UserAuthProvider, Long> {
+	Optional<UserAuthProvider> findByEmail(String email);
+
 	boolean existsByProviderAndProviderUserId(Provider provider, String providerUserId);
 }

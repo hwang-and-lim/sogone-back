@@ -57,8 +57,7 @@ public class UserAuthProvider extends BaseCreatedTimeEntity {
 	private String providerUserId;
 
 	private String email;
-
-	@Getter(AccessLevel.NONE)
+	
 	@Column(name = "password_hash")
 	private String passwordHash;
 

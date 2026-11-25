@@ -1,4 +1,4 @@
-package org.example.sogone.config.jwt;
+package org.example.sogone.security.jwt;
 
 import java.time.Duration;
 

@@ -1,9 +1,8 @@
 package org.example.sogone.config;
 
-import org.example.sogone.config.jwt.JwtAccessDeniedHandler;
-import org.example.sogone.config.jwt.JwtAuthenticationEntryPoint;
-import org.example.sogone.config.jwt.JwtTokenAuthenticationFilter;
-import org.example.sogone.config.jwt.JwtTokenProvider;
+import org.example.sogone.security.jwt.JwtAccessDeniedHandler;
+import org.example.sogone.security.jwt.JwtAuthenticationEntryPoint;
+import org.example.sogone.security.jwt.JwtTokenAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @EnableWebSecurity
 public class SecurityConfig {
-	private final JwtTokenProvider jwtTokenProvider;
+	private final JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter;
 	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 	private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
@@ -36,19 +35,17 @@ public class SecurityConfig {
 			.httpBasic(AbstractHttpConfigurer::disable)
 			.logout(AbstractHttpConfigurer::disable)
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+			.exceptionHandling(exception -> exception
+				.authenticationEntryPoint(jwtAuthenticationEntryPoint)
+				.accessDeniedHandler(jwtAccessDeniedHandler))
 			.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/error").permitAll()
 				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 				.requestMatchers("/api/auth/**").permitAll()
 				.requestMatchers("/api/admin/**").hasRole("ADMIN")
 				.anyRequest().authenticated()
 			)
-			.addFilterBefore(new JwtTokenAuthenticationFilter(jwtTokenProvider),
-				UsernamePasswordAuthenticationFilter.class)
-			.exceptionHandling(ex -> ex
-				.authenticationEntryPoint(jwtAuthenticationEntryPoint)
-				.accessDeniedHandler(jwtAccessDeniedHandler)
-			);
+			.addFilterBefore(jwtTokenAuthenticationFilter,
+				UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
