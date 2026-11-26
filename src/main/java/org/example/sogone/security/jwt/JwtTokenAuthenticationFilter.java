@@ -3,7 +3,6 @@ package org.example.sogone.security.jwt;
 import java.io.IOException;
 import java.util.List;
 
-import org.example.sogone.exception.BusinessException;
 import org.example.sogone.exception.ErrorCode;
 import org.example.sogone.user.entity.type.Role;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,10 +39,10 @@ public class JwtTokenAuthenticationFilter extends OncePerRequestFilter {
 		if (token != null) {
 			try {
 				Claims claims = jwtTokenProvider.parseAccessToken(token);
-				
+
 				String roleName = claims.get("role", String.class);
 				if (roleName == null) {
-					throw new BusinessException(ErrorCode.UNAUTHORIZED);
+					throw new JwtException(ErrorCode.UNAUTHORIZED.getMessage());
 				}
 
 				Role role = Role.valueOf(roleName);

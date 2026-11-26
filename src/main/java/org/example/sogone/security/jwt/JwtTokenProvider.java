@@ -6,12 +6,12 @@ import java.util.Date;
 
 import javax.crypto.SecretKey;
 
-import org.example.sogone.exception.BusinessException;
 import org.example.sogone.exception.ErrorCode;
 import org.example.sogone.user.entity.User;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -54,7 +54,7 @@ public class JwtTokenProvider {
 			.getPayload();
 
 		if (!ACCESS_TOKEN.equals(claims.get(TOKEN_TYPE, String.class))) {
-			throw new BusinessException(ErrorCode.INVALID_TOKEN);
+			throw new JwtException(ErrorCode.INVALID_TOKEN.getMessage());
 		}
 
 		return claims;
