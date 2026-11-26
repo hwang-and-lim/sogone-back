@@ -44,6 +44,9 @@ public enum ErrorCode {
 	// 415
 	UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "지원하지 않는 Content-Type입니다."),
 
+	// 423 Locked
+	ACCOUNT_LOCKED(HttpStatus.UNAUTHORIZED, "로그인 시도가 많아 계정이 잠겼습니다. 잠시 후 다시 시도해주세요."),
+
 	// 429 Too Many Requests
 	TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "요청이 너무 많습니다. 잠시 후 다시 시도해주세요."),
 

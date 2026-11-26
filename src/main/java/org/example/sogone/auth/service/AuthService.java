@@ -56,7 +56,7 @@ public class AuthService {
 		return createSession(newUser, request.getPlatform());
 	}
 
-	@Transactional
+	@Transactional(noRollbackFor = BusinessException.class)
 	public TokenPair login(LoginRequestDTO request) {
 		String email = UserAuthProvider.normalizeEmail(request.getEmail());
 		UserAuthProvider userAuthProvider = authProviderRepository.findByProviderAndProviderUserId(
@@ -66,9 +66,18 @@ public class AuthService {
 				() -> new BusinessException(ErrorCode.INVALID_CREDENTIALS)
 			);
 
+		Instant now = Instant.now();
+		if (userAuthProvider.isLocked(now)) {
+			throw new BusinessException(ErrorCode.ACCOUNT_LOCKED);
+		}
+
 		if (!passwordEncoder.matches(request.getPassword(), userAuthProvider.getPasswordHash())) {
+			userAuthProvider.recordLoginFailure(now);
+
 			throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
 		}
+
+		userAuthProvider.recordLoginSuccess();
 
 		return createSession(userAuthProvider.getUser(), request.getPlatform());
 	}

@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
 		ErrorCode code = e.getErrorCode();
 		log.error("BusinessException : ", e);
 		return ResponseEntity.status(code.getStatus())
-			.body(ApiResponse.fail(ErrorResponse.of(code), code.getMessage()));
+			.body(ApiResponse.fail(ErrorResponse.of(code), ""));
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<ErrorResponse>> handleUnexpected(Exception e) {
 		log.error("Exception", e);
-		
+
 		if (e instanceof org.springframework.web.ErrorResponse springError) {
 			HttpStatusCode status = springError.getStatusCode();
 			return error(ErrorCode.toErrorCode(status));
@@ -74,6 +74,6 @@ public class GlobalExceptionHandler {
 
 	private ResponseEntity<ApiResponse<ErrorResponse>> error(ErrorCode code, String message) {
 		return ResponseEntity.status(code.getStatus())
-			.body(ApiResponse.fail(ErrorResponse.of(code), message));
+			.body(ApiResponse.fail(ErrorResponse.of(code), ""));
 	}
 }

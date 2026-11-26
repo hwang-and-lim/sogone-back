@@ -57,7 +57,7 @@ public class UserAuthProvider extends BaseCreatedTimeEntity {
 	private String providerUserId;
 
 	private String email;
-	
+
 	@Column(name = "password_hash")
 	private String passwordHash;
 
@@ -108,5 +108,25 @@ public class UserAuthProvider extends BaseCreatedTimeEntity {
 
 	public static String normalizeEmail(String email) {
 		return email.trim().toLowerCase(Locale.ROOT);
+	}
+
+	public void recordLoginFailure(Instant now) {
+		this.failedLoginCount++;
+		if (failedLoginCount > MAX_LOGIN_ATTEMPT) {
+			this.failedLoginCount = 0;
+			this.lockedUntil = now.plus(DURATION_LOCKED);
+		}
+	}
+
+	public void recordLoginSuccess() {
+		this.failedLoginCount = 0;
+		this.lockedUntil = null;
+	}
+
+	public boolean isLocked(Instant now) {
+		if (lockedUntil == null)
+			return false;
+
+		return now.isBefore(lockedUntil);
 	}
 }

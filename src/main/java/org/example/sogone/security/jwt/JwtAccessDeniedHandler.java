@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.example.sogone.exception.ErrorCode;
 import org.example.sogone.exception.ErrorResponse;
+import org.example.sogone.global.common.ApiResponse;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -29,6 +30,6 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
 		response.setStatus(code.getStatus().value());
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-		objectMapper.writeValue(response.getWriter(), ErrorResponse.of(code));
+		objectMapper.writeValue(response.getWriter(), ApiResponse.fail(ErrorResponse.of(code), ""));
 	}
 }

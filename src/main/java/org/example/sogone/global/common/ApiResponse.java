@@ -8,7 +8,7 @@ public record ApiResponse<T>(
 	T data
 ) {
 	public static <T> ApiResponse<T> ok(T data) {
-		return new ApiResponse<>(true, "sucess", data);
+		return new ApiResponse<>(true, "success", data);
 	}
 
 	public static <T> ApiResponse<T> ok(String message, T data) {
@@ -16,6 +16,7 @@ public record ApiResponse<T>(
 	}
 
 	public static ApiResponse<ErrorResponse> fail(ErrorResponse error, String message) {
-		return new ApiResponse<>(false, message, null);
+		String errorMessage = (!message.isEmpty()) ? message : error.getMessage();
+		return new ApiResponse<>(false, errorMessage, error);
 	}
 }
