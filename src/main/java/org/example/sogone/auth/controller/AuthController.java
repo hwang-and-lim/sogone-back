@@ -1,13 +1,11 @@
 package org.example.sogone.auth.controller;
 
-import org.example.sogone.auth.dto.AppAuthResponse;
+import org.example.sogone.auth.component.AuthResponseFactory;
 import org.example.sogone.auth.dto.AuthResponse;
 import org.example.sogone.auth.dto.LoginRequestDTO;
 import org.example.sogone.auth.dto.RefreshTokenRequestDTO;
 import org.example.sogone.auth.dto.SignupRequestDTO;
 import org.example.sogone.auth.dto.TokenPair;
-import org.example.sogone.auth.dto.WebAuthResponse;
-import org.example.sogone.auth.entity.type.Platform;
 import org.example.sogone.auth.service.AuthService;
 import org.example.sogone.global.common.ApiResponse;
 import org.example.sogone.security.jwt.RefreshTokenCookieManager;
@@ -29,19 +27,20 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 	private final AuthService authService;
 	private final RefreshTokenCookieManager cookieManager;
+	private final AuthResponseFactory authResponseFactory;
 
 	@PostMapping("/signup")
 	public ResponseEntity<ApiResponse<AuthResponse>> signup(@RequestBody @Valid SignupRequestDTO request) {
 		TokenPair tokens = authService.signup(request);
 
-		return tokenResponse(HttpStatus.CREATED, tokens);
+		return authResponseFactory.tokenResponse(HttpStatus.CREATED, tokens);
 	}
 
 	@PostMapping("/login")
 	public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody @Valid LoginRequestDTO request) {
 		TokenPair tokens = authService.login(request);
 
-		return tokenResponse(HttpStatus.OK, tokens);
+		return authResponseFactory.tokenResponse(HttpStatus.OK, tokens);
 	}
 
 	@PostMapping("/reissue")
@@ -55,7 +54,7 @@ public class AuthController {
 
 		TokenPair tokens = authService.reissue(refreshToken);
 
-		return tokenResponse(HttpStatus.OK, tokens);
+		return authResponseFactory.tokenResponse(HttpStatus.OK, tokens);
 	}
 
 	@PostMapping("/logout")
@@ -75,16 +74,5 @@ public class AuthController {
 		}
 
 		return builder.body(ApiResponse.ok(null));
-	}
-
-	private ResponseEntity<ApiResponse<AuthResponse>> tokenResponse(HttpStatus status, TokenPair tokens) {
-		if (tokens.platform() == Platform.WEB) {
-			return ResponseEntity.status(status)
-				.header(HttpHeaders.SET_COOKIE, cookieManager.create(tokens.refreshToken()).toString())
-				.body(ApiResponse.ok(new WebAuthResponse(tokens.accessToken())));
-		}
-
-		return ResponseEntity.status(status)
-			.body(ApiResponse.ok(new AppAuthResponse(tokens.accessToken(), tokens.refreshToken())));
 	}
 }
