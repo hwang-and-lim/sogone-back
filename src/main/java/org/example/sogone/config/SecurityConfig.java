@@ -1,9 +1,11 @@
 package org.example.sogone.config;
 
-import org.example.sogone.config.jwt.JwtAccessDeniedHandler;
-import org.example.sogone.config.jwt.JwtAuthenticationEntryPoint;
-import org.example.sogone.config.jwt.JwtTokenAuthenticationFilter;
-import org.example.sogone.config.jwt.JwtTokenProvider;
+import java.util.List;
+
+import org.example.sogone.security.jwt.JwtAccessDeniedHandler;
+import org.example.sogone.security.jwt.JwtAuthenticationEntryPoint;
+import org.example.sogone.security.jwt.JwtTokenAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,6 +18,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @EnableWebSecurity
 public class SecurityConfig {
-	private final JwtTokenProvider jwtTokenProvider;
+	private final JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter;
 	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 	private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
@@ -36,6 +41,9 @@ public class SecurityConfig {
 			.httpBasic(AbstractHttpConfigurer::disable)
 			.logout(AbstractHttpConfigurer::disable)
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+			.exceptionHandling(exception -> exception
+				.authenticationEntryPoint(jwtAuthenticationEntryPoint)
+				.accessDeniedHandler(jwtAccessDeniedHandler))
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/error").permitAll()
 				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -43,12 +51,8 @@ public class SecurityConfig {
 				.requestMatchers("/api/admin/**").hasRole("ADMIN")
 				.anyRequest().authenticated()
 			)
-			.addFilterBefore(new JwtTokenAuthenticationFilter(jwtTokenProvider),
-				UsernamePasswordAuthenticationFilter.class)
-			.exceptionHandling(ex -> ex
-				.authenticationEntryPoint(jwtAuthenticationEntryPoint)
-				.accessDeniedHandler(jwtAccessDeniedHandler)
-			);
+			.addFilterBefore(jwtTokenAuthenticationFilter,
+				UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
@@ -56,5 +60,21 @@ public class SecurityConfig {
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
+	}
+
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource(
+		@Value("${app.cors.allowed-origins}") List<String> origins
+	) {
+		CorsConfiguration config = new CorsConfiguration();
+		config.setAllowedOrigins(origins);
+		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+		config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+		config.setAllowCredentials(true);
+
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/api/**", config);
+
+		return source;
 	}
 }

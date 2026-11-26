@@ -35,7 +35,7 @@ public class UserSession extends BaseCreatedTimeEntity {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
-	@Column(nullable = false, unique = true)
+	@Column(nullable = false, unique = true, length = 64)
 	private String refreshTokenHash;
 
 	@Enumerated(EnumType.STRING)
@@ -54,5 +54,14 @@ public class UserSession extends BaseCreatedTimeEntity {
 		this.refreshTokenHash = refreshTokenHash;
 		this.platform = platform;
 		this.expiresAt = expiresAt;
+	}
+
+	public void rotate(String newRefreshTokenHash, Instant newExpiresAt) {
+		this.refreshTokenHash = newRefreshTokenHash;
+		this.expiresAt = newExpiresAt;
+	}
+
+	public boolean isExpired(Instant now) {
+		return !expiresAt.isAfter(now);
 	}
 }

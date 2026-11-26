@@ -22,7 +22,7 @@ spring:
 jwt:
   secret-key: ${JWT_SECRET}
   access-expiration: 30m
-  refresh-expiration: 14d
+  refresh-expiration: 30d
   cookie:
     name: refreshToken
     path: /api/auth
