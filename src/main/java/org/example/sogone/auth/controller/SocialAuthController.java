@@ -38,7 +38,7 @@ public class SocialAuthController {
 
 		return authResponseFactory.tokenResponse(HttpStatus.OK, tokens);
 	}
-
+	
 	private Provider toProvider(String value) {
 		try {
 			return Provider.valueOf(value.toUpperCase(Locale.ROOT));

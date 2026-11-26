@@ -73,10 +73,6 @@ public class UserAuthProvider extends BaseCreatedTimeEntity {
 	@Column(name = "locked_until")
 	private Instant lockedUntil;
 
-	@Getter(AccessLevel.NONE)
-	@Column(name = "refresh_token", columnDefinition = "TEXT")
-	private String refreshToken;
-
 	@Builder
 	private UserAuthProvider(
 		User user,
