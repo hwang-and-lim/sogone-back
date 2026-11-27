@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.*;
 import java.time.Duration;
 import java.time.Instant;
 
+import org.example.sogone.util.EmailNormalizer;
 import org.junit.jupiter.api.Test;
 
 class UserAuthProviderTest {
@@ -40,6 +41,6 @@ class UserAuthProviderTest {
 
 	@Test
 	void 이메일은_소문자로_정규화된다() {
-		assertThat(UserAuthProvider.normalizeEmail("  A@Test.COM ")).isEqualTo("a@test.com");
+		assertThat(EmailNormalizer.normalizeEmail("  A@Test.COM ")).isEqualTo("a@test.com");
 	}
 }

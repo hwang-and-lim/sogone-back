@@ -2,11 +2,14 @@ package org.example.sogone.auth.controller;
 
 import org.example.sogone.auth.component.AuthResponseFactory;
 import org.example.sogone.auth.dto.AuthResponse;
+import org.example.sogone.auth.dto.EmailSendRequestDTO;
+import org.example.sogone.auth.dto.EmailVerifyCodeRequestDTO;
 import org.example.sogone.auth.dto.LoginRequestDTO;
 import org.example.sogone.auth.dto.RefreshTokenRequestDTO;
 import org.example.sogone.auth.dto.SignupRequestDTO;
 import org.example.sogone.auth.dto.TokenPair;
 import org.example.sogone.auth.service.AuthService;
+import org.example.sogone.auth.service.EmailVerifyService;
 import org.example.sogone.global.common.ApiResponse;
 import org.example.sogone.security.jwt.RefreshTokenCookieManager;
 import org.springframework.http.HttpHeaders;
@@ -28,6 +31,7 @@ public class AuthController {
 	private final AuthService authService;
 	private final RefreshTokenCookieManager cookieManager;
 	private final AuthResponseFactory authResponseFactory;
+	private final EmailVerifyService emailVerifyService;
 
 	@PostMapping("/signup")
 	public ResponseEntity<ApiResponse<AuthResponse>> signup(@RequestBody @Valid SignupRequestDTO request) {
@@ -74,5 +78,23 @@ public class AuthController {
 		}
 
 		return builder.body(ApiResponse.ok(null));
+	}
+
+	@PostMapping("/email/send-code")
+	public ResponseEntity<ApiResponse<Void>> emailSend(
+		@RequestBody @Valid EmailSendRequestDTO request
+	) {
+		emailVerifyService.joinEmail(request);
+
+		return ResponseEntity.ok().body(ApiResponse.ok(null));
+	}
+
+	@PostMapping("/email/verify")
+	public ResponseEntity<ApiResponse<Void>> verifyEmailCode(
+		@RequestBody @Valid EmailVerifyCodeRequestDTO request
+	) {
+		emailVerifyService.verifyEmailCode(request);
+
+		return ResponseEntity.ok().body(ApiResponse.ok(null));
 	}
 }

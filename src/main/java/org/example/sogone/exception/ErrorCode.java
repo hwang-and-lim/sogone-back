@@ -10,6 +10,9 @@ public enum ErrorCode {
 	// 400 Bad Request
 	INVALID_INPUT(HttpStatus.BAD_REQUEST, "요청 값이 올바르지 않습니다."),
 	UNSUPPORTED_PROVIDER(HttpStatus.BAD_REQUEST, "지원하지 않는 로그인 플랫폼입니다."),
+	NO_MATCH_CODE(HttpStatus.BAD_REQUEST, "인증코드가 일치하지 않습니다."),
+	INVALID_EMAIL(HttpStatus.BAD_REQUEST, "이메일 형식이 올바르지 않습니다."),
+	NOT_VERIFY_EMAIL(HttpStatus.BAD_REQUEST, "인증되지 않은 이메일입니다."),
 
 	// 401 Unauthorized
 	INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다."),
@@ -51,6 +54,7 @@ public enum ErrorCode {
 
 	// 429 Too Many Requests
 	TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "요청이 너무 많습니다. 잠시 후 다시 시도해주세요."),
+	TOO_MANY_ATTEMPTS(HttpStatus.TOO_MANY_REQUESTS, "인증 요청이 너무 많습니다. 잠시 다시 시도해주세요."),
 
 	// 500
 	INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다."),

@@ -1,5 +1,6 @@
 package org.example.sogone.auth.service;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import org.example.sogone.auth.component.NicknameGenerator;
@@ -40,7 +41,7 @@ public class SocialAccountService {
 			userService.save(nicknameGenerator.resolve(info.nickname())));
 
 		authProviderRepository.save(UserAuthProvider.ofSocial(
-			user, info.provider(), info.providerUserId(), info.email()));
+			user, info.provider(), info.providerUserId(), info.email(), info.emailVerified(), Instant.now()));
 
 		return sessionService.createSession(user, platform);
 	}
