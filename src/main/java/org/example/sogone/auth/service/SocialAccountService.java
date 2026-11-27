@@ -6,6 +6,7 @@ import org.example.sogone.auth.component.NicknameGenerator;
 import org.example.sogone.auth.dto.TokenPair;
 import org.example.sogone.auth.entity.UserAuthProvider;
 import org.example.sogone.auth.entity.type.Platform;
+import org.example.sogone.auth.entity.type.Provider;
 import org.example.sogone.auth.repository.UserAuthProviderRepository;
 import org.example.sogone.auth.social.SocialUserInfo;
 import org.example.sogone.user.entity.User;
@@ -30,7 +31,7 @@ public class SocialAccountService {
 			info.providerUserId());
 		if (linked.isPresent()) {
 			linked.get().getUser().validateActive();
-			
+
 			return sessionService.createSession(linked.get().getUser(), platform);
 		}
 
@@ -51,6 +52,7 @@ public class SocialAccountService {
 		}
 
 		return authProviderRepository.findAllByEmail(info.email()).stream()
+			.filter(p -> p.getProvider() != Provider.LOCAL)
 			.map(UserAuthProvider::getUser)
 			.findFirst();
 	}

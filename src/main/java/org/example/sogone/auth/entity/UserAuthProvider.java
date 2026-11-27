@@ -108,7 +108,7 @@ public class UserAuthProvider extends BaseCreatedTimeEntity {
 
 	public void recordLoginFailure(Instant now) {
 		this.failedLoginCount++;
-		if (failedLoginCount > MAX_LOGIN_ATTEMPT) {
+		if (failedLoginCount >= MAX_LOGIN_ATTEMPT) {
 			this.failedLoginCount = 0;
 			this.lockedUntil = now.plus(DURATION_LOCKED);
 		}
