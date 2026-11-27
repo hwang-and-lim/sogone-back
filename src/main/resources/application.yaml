@@ -41,3 +41,5 @@ oauth:
     redirect-uri: ${KAKAO_REDIRECT_URI}
   google:
     client-ids: ${GOOGLE_CLIENT_IDS}
+  apple:
+    client-ids: ${APPLE_CLIENT_IDS}

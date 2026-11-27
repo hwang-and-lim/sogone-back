@@ -23,10 +23,10 @@ public class AuthResponseFactory {
 		if (tokens.platform() == Platform.WEB) {
 			return ResponseEntity.status(status)
 				.header(HttpHeaders.SET_COOKIE, cookieManager.create(tokens.refreshToken()).toString())
-				.body(ApiResponse.ok(new WebAuthResponse(tokens.accessToken())));
+				.body(ApiResponse.ok(new WebAuthResponse(tokens.accessToken(), tokens.isNewUser())));
 		}
 
 		return ResponseEntity.status(status)
-			.body(ApiResponse.ok(new AppAuthResponse(tokens.accessToken(), tokens.refreshToken())));
+			.body(ApiResponse.ok(new AppAuthResponse(tokens.accessToken(), tokens.refreshToken(), tokens.isNewUser())));
 	}
 }

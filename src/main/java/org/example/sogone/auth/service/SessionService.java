@@ -29,6 +29,8 @@ public class SessionService {
 		String refreshToken = refreshTokenGenerator.generate();
 		Instant expiresAt = Instant.now().plus(jwtProperties.getRefreshExpiration());
 
+		userSessionRepository.deleteUserSessionByUserAndPlatform(user, platform);
+
 		userSessionRepository.save(UserSession.builder()
 			.user(user)
 			.platform(platform)
@@ -36,6 +38,6 @@ public class SessionService {
 			.expiresAt(expiresAt)
 			.build());
 
-		return new TokenPair(accessToken, refreshToken, expiresAt, platform);
+		return new TokenPair(accessToken, refreshToken, expiresAt, platform, user.isNewUser());
 	}
 }

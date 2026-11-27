@@ -13,4 +13,6 @@ public interface UserAuthProviderRepository extends JpaRepository<UserAuthProvid
 	boolean existsByProviderAndProviderUserId(Provider provider, String providerUserId);
 
 	List<UserAuthProvider> findAllByEmail(String email);
+
+	boolean existsByEmail(String email);
 }

@@ -107,7 +107,8 @@ public class AuthService {
 
 		String accessToken = jwtTokenProvider.generateAccessToken(session.getUser());
 
-		return new TokenPair(accessToken, newRefreshToken, refreshExpiresAt, session.getPlatform());
+		return new TokenPair(accessToken, newRefreshToken, refreshExpiresAt, session.getPlatform(),
+			session.getUser().isNewUser());
 	}
 
 	@Transactional
