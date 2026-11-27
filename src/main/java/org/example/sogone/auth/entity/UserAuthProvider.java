@@ -73,10 +73,6 @@ public class UserAuthProvider extends BaseCreatedTimeEntity {
 	@Column(name = "locked_until")
 	private Instant lockedUntil;
 
-	@Getter(AccessLevel.NONE)
-	@Column(name = "refresh_token", columnDefinition = "TEXT")
-	private String refreshToken;
-
 	@Builder
 	private UserAuthProvider(
 		User user,
@@ -112,7 +108,7 @@ public class UserAuthProvider extends BaseCreatedTimeEntity {
 
 	public void recordLoginFailure(Instant now) {
 		this.failedLoginCount++;
-		if (failedLoginCount > MAX_LOGIN_ATTEMPT) {
+		if (failedLoginCount >= MAX_LOGIN_ATTEMPT) {
 			this.failedLoginCount = 0;
 			this.lockedUntil = now.plus(DURATION_LOCKED);
 		}

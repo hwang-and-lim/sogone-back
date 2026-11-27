@@ -4,5 +4,6 @@ import java.time.Instant;
 
 import org.example.sogone.auth.entity.type.Platform;
 
-public record TokenPair(String accessToken, String refreshToken, Instant refreshExpiredAt, Platform platform) {
+public record TokenPair(String accessToken, String refreshToken, Instant refreshExpiredAt, Platform platform,
+                        boolean isNewUser) {
 }

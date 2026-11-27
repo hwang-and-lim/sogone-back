@@ -31,7 +31,6 @@ CREATE TABLE user_auth_providers
     password_changed_at TIMESTAMPTZ NULL,
     failed_login_count  INT          NOT NULL DEFAULT 0,
     locked_until        TIMESTAMPTZ NULL,
-    refresh_token       TEXT NULL,
     created_at          TIMESTAMPTZ  NOT NULL DEFAULT now(),
     UNIQUE (provider, provider_user_id),
     CHECK ((provider = 'LOCAL') = (password_hash IS NOT NULL))

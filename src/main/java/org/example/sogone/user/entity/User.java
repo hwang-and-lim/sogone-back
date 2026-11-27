@@ -2,6 +2,8 @@ package org.example.sogone.user.entity;
 
 import java.time.Instant;
 
+import org.example.sogone.exception.BusinessException;
+import org.example.sogone.exception.ErrorCode;
 import org.example.sogone.global.common.BaseTimeEntity;
 import org.example.sogone.user.entity.type.Role;
 import org.example.sogone.user.entity.type.UserStatus;
@@ -78,5 +80,18 @@ public class User extends BaseTimeEntity {
 		this.pushLike = true;
 		this.pushComment = true;
 		this.pushFollow = true;
+	}
+
+	public void validateActive() {
+		switch (this.status) {
+			case UserStatus.DELETED -> throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+			case UserStatus.RESTRICTED -> throw new BusinessException(ErrorCode.USER_RESTRICTED);
+			case ACTIVE -> {
+			}
+		}
+	}
+
+	public boolean isNewUser() {
+		return this.onboardedAt == null;
 	}
 }
