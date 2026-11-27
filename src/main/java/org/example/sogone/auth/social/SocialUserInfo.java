@@ -1,7 +1,7 @@
 package org.example.sogone.auth.social;
 
-import org.example.sogone.auth.entity.UserAuthProvider;
 import org.example.sogone.auth.entity.type.Provider;
+import org.example.sogone.util.EmailNormalizer;
 
 public record SocialUserInfo(
 	Provider provider,
@@ -11,6 +11,6 @@ public record SocialUserInfo(
 	String nickname
 ) {
 	public SocialUserInfo {
-		email = (email == null) ? null : UserAuthProvider.normalizeEmail(email);
+		email = (email == null) ? null : EmailNormalizer.normalizeEmail(email);
 	}
 }

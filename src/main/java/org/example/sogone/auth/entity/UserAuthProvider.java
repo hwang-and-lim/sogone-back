@@ -2,11 +2,11 @@ package org.example.sogone.auth.entity;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Locale;
 
 import org.example.sogone.auth.entity.type.Provider;
 import org.example.sogone.global.common.BaseCreatedTimeEntity;
 import org.example.sogone.user.entity.User;
+import org.example.sogone.util.EmailNormalizer;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -80,7 +80,8 @@ public class UserAuthProvider extends BaseCreatedTimeEntity {
 		String providerUserId,
 		String email,
 		String passwordHash,
-		Instant now
+		Instant now,
+		Instant emailVerifiedAt
 	) {
 		this.user = user;
 		this.provider = provider;
@@ -89,21 +90,24 @@ public class UserAuthProvider extends BaseCreatedTimeEntity {
 		this.passwordHash = passwordHash;
 		this.failedLoginCount = 0;
 		this.passwordChangedAt = passwordHash != null ? now : null;
+		this.emailVerifiedAt = emailVerifiedAt;
 	}
 
-	// 로컬 회원 가입
+	// 로컬 회원 가입 (이메일 인증을 마친 뒤에만 가입하므로 인증 시각을 함께 기록)
 	public static UserAuthProvider ofLocal(User user, String email, String passwordHash, Instant now) {
-		String normalized = normalizeEmail(email);
-		return new UserAuthProvider(user, Provider.LOCAL, normalized, normalized, passwordHash, now);
+		String normalized = EmailNormalizer.normalizeEmail(email);
+		return new UserAuthProvider(user, Provider.LOCAL, normalized, normalized, passwordHash, now, now);
 	}
 
-	// 소셜로그인
-	public static UserAuthProvider ofSocial(User user, Provider provider, String providerUserId, String email) {
-		return new UserAuthProvider(user, provider, providerUserId, email, null, null);
+	// 소셜로그인 (제공자가 이메일을 인증한 경우에만 인증 시각 기록)
+	public static UserAuthProvider ofSocial(User user, Provider provider, String providerUserId, String email,
+		boolean emailVerified, Instant now) {
+		return new UserAuthProvider(user, provider, providerUserId, email, null, null,
+			emailVerified ? now : null);
 	}
 
-	public static String normalizeEmail(String email) {
-		return email.trim().toLowerCase(Locale.ROOT);
+	public boolean isEmailVerified() {
+		return emailVerifiedAt != null;
 	}
 
 	public void recordLoginFailure(Instant now) {
